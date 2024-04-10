@@ -7,7 +7,21 @@ export async function createBook(formData) {
     const { title, rating, author, blurb } = Object.fromEntries(formData);
 
     // create book id
-    const id = generateId();
+    const id = Date.now();
+
+    // add book to sorted set
+    const uniqueId = await client.zAdd(
+        "books",
+        {
+            value: title,
+            score: id,
+        },
+        { NX: true }
+    );
+
+    if (!uniqueId) {
+        return { error: "Book already exists" };
+    }
 
     // save new hash for the book
     await client.hSet(`books:${id}`, {
