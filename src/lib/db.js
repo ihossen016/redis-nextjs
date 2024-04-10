@@ -10,8 +10,20 @@ const client = createClient({
 
 client.on("error", (err) => console.log("Redis Client Error", err));
 
-if (!client.isOpen) {
-    client.connect();
-}
+let connectPromise;
 
-export { client };
+const connectClient = () => {
+    if (!connectPromise) {
+        // Ensure that we only attempt to connect once
+        connectPromise = client.connect().catch((err) => {
+            console.log("Redis connection error: ", err);
+            connectPromise = null; // Reset promise to allow retry on failure
+        });
+    }
+    return connectPromise;
+};
+
+// Immediately invoke the connect logic to ensure the client attempts to connect on startup
+connectClient();
+
+export { client, connectClient };

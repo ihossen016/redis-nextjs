@@ -1,7 +1,19 @@
-import { client } from "@/lib/db";
+import { client, connectClient } from "@/lib/db";
 import Link from "next/link";
 
 const getBooks = async () => {
+    // Ensure the Redis client is connected
+    await connectClient();
+
+    // check the number of clients
+    const info = await client.info("clients");
+    const connectedClients = info.match(/connected_clients:(\d+)/i)[1];
+
+    if (connectedClients >= 27) {
+        await client.quit();
+        return [];
+    }
+
     // get all books with their scores
     const results = await client.zRangeWithScores("books", 0, -1);
 

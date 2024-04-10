@@ -13,7 +13,7 @@ export default function Create() {
         if (result?.error) {
             setError(result.error);
         } else {
-            redirect("/");
+            redirect("/", "push");
         }
     }
 
